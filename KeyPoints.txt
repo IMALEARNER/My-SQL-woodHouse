@@ -1,0 +1,140 @@
+###### Title: KeyPointsAboutSQL
+##### Time: 19-9-21
+##### Author: I'm'a'learner
+
+# SQL: structured query language.   
+# 语法偏向自然语言.  
+# 对大小写不敏感.    
+
+# 4 types: 
+#	DQL: 数据查询语言.  select, from , where
+#	DML: 数据操纵语言.  insert, update, delete
+#	DDL: 数据定义语言.  create, alter, drop
+# 	DCL: 数据控制语言.  grant, revoke, commit, rollback, savepoint
+
+# the simplest form:  SELECT column_name  FROM  table_name
+# SELECT *  ： 检索所有列
+# SELECT *  FROM  table_name  LIMIT 10：选取前10行
+# DISTINCT：选取不重复的数据        SELECT DISTINCT col_n FROM table_name
+# ORDER BY variable_name： 排序，默认升序.   DESC:降序
+# GROUP BY var_name： 按照var_name分组
+SELECT vend_id,COUNT(*) AS num_prods
+FROM products
+GROUP BY vend_id;
+
+# WHRER       
+# ORDER子句、GROUP子句始终放在WHERE后面, GROUP始终在ORDER前面
+# EG:  WHERE n>=10        WHERE n BETWEEN 5 AND 10     WHRER n = 'name'
+# WHERE n IS NULL
+# WHERE city LIKE 'N%'   选取居住在以 "N" 开始的城市. %用于定义通配符
+# WHERE city NOT LIKE '%lon%'
+
+# HAVING: very similar to WHRER 
+# 差别是WHERE 过滤行，而 HAVING 过滤分组.  
+# WHERE 在数据分组前进行过滤， HAVING 在数据分组后进行过滤.
+
+# SQL SELECT 子句顺序
+# SELECT  >  FROM >  WHERE >  GROUP BY > HAVING >  ORDER BY >  LIMIT
+
+# SQL operators:   AND  OR  IN  NOT
+
+# AS: 使用别名（指代）
+SELECT prod_id,
+    quantity,
+    item_price,
+    quantity*item_price AS expanded_price
+FROM orderitems
+WHERE order_num = 20005
+
+SELECT po.OrderID, p.LastName, p.FirstName
+FROM Persons AS p, Product_Orders AS po
+WHERE p.LastName='Adams' AND p.FirstName='John'
+
+# SQL aggregate function (聚集函数)
+# AVG():某列均值   COUNT():行数    MAX()   MIN()    SUM()
+SELECT AVG(prod_price) AS avg_price
+FROM products;
+
+
+# 子查询: 可以把一条 SELECT语句返回的结果用于另一条 SELECT 语句的 WHERE 子句
+SELECT cust_id
+FROM orders
+WHERE order_num IN (SELECT order_num
+                    FROM orderitems
+                    WHERE prod_id = 'TNT2');
+
+
+#  JOIN子句     
+#  Here you can check for more details by https://www.w3school.com.cn/sql/sql_join.asp
+#  数据库中的表可通过键将彼此联系起来: 主键(primary key).  例如： ID是唯一的key
+SELECT Persons.LastName, Persons.FirstName, Orders.OrderNo
+FROM Persons
+INNER JOIN Orders
+ON Persons.Id_P = Orders.Id_P
+ORDER BY Persons.LastName
+# 4 types of JOIN 
+#	INNER JOIN(JOIN)：在表中存在至少一个匹配时返回行。如果没有匹配，就不会列出这些行
+# 	LEFT JOIN: 从左表 (table_name1) 那里返回所有的行，即使在右表 (table_name2) 中没有匹配的行
+#	RIGHT JOIN：从右表 (table_name2) 那里返回所有的行，即使在左表 (table_name1) 中没有匹配的行
+# 	FULL JOIN: FULL JOIN 关键字会从左表 (Persons) 和右表 (Orders) 那里返回所有的行。 如果 "Persons" 中的行在表 "Orders" 中没有匹配，或者如果 "Orders" 中的行在表 "Persons" 中没有匹配，这些行同样会列出。
+
+
+# UNION子句：合并两个或多个 SELECT 语句的结果集
+# 默认地，UNION 操作符选取不同的值。如果允许重复的值，请使用 UNION ALL
+# UNION 内部的 SELECT 语句必须拥有相同数量的列。列也必须拥有相似的数据类型。
+SELECT column_name(s) FROM table_name1
+UNION ALL
+SELECT column_name(s) FROM table_name2
+
+
+# CASE WHEN函数: 流程控制
+# 2 different but equal forms: 简单CASE函数和CASE搜索函数
+SELECT  CASE country
+WHEN '中国'     THEN '亚洲'
+WHEN '印度'     THEN '亚洲'
+WHEN '日本'     THEN '亚洲'
+WHEN '美国'     THEN '北美洲'
+WHEN '加拿大'  THEN '北美洲'
+WHEN '墨西哥'  THEN '北美洲'
+ELSE '其他' END AS 洲
+，SUM(population) AS 人口
+FROM    Table_A
+GROUP BY CASE country
+WHEN '中国'     THEN '亚洲'
+WHEN '印度'     THEN '亚洲'
+WHEN '日本'     THEN '亚洲'
+WHEN '美国'     THEN '北美洲'
+WHEN '加拿大'  THEN '北美洲'
+WHEN '墨西哥'  THEN '北美洲'
+ELSE '其他' END;
+# 实现类似数据透视表的功能
+SELECT country, SUM(CASE WHEN  sex = '1' THEN population ELSE 0 END) AS 男,
+		SUM(CASE WHEN sex= '2' THEN population ELSE 0 END) As 女
+FROM Table_A
+GROUP BY country;
+
+
+# CREATE TABLE 
+# 创建空表
+CREATE TABLE Persons
+(
+Id_P int,
+LastName varchar(255),
+FirstName varchar(255),
+Address varchar(255),
+City varchar(255)
+)
+# trick: 使用SELECTd的结果创建表
+CREATE TABLE Persons_table as
+SELECT id, name FROM Person;
+
+
+#  EXTRACT函数: 返回日期/时间的单独部分
+#  语法： EXTRACT (unit FROM date)     unit: YEAR/MONTH/DAY
+
+
+#  摘录自：https://www.jianshu.com/p/632ff3c41be0
+#  更多SQL参考： https://www.w3school.com.cn/sql/index.asp
+#  面试备考1：https://www.jianshu.com/p/3f27a6dced16
+#  面试备考2：https://www.cnblogs.com/diffrent/p/8854995.html
+#  面试备考3：https://www.cnblogs.com/lhx0827/p/9567199.html
